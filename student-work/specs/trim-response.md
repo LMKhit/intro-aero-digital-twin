@@ -1,6 +1,6 @@
 # Stage 4 Starter Specification: Live Cm–Alpha Relationship and Trim
 
-Student name: `[YOUR NAME]`
+Student name: Lwin Minn Khit
 
 Complete only the boxes marked **STUDENT COMPLETES**. The instructor-provided engineering scope and the implementation contract must not be edited. When the specification is complete and approved, attach this one file to ChatGPT.
 
@@ -99,11 +99,11 @@ Also make the calculated values available through the provided `stability.pitch.
 
 Before asking ChatGPT for code, complete each prediction in your own words.
 
-1. If `Cm_alpha < 0` and the angle-of-attack disturbance is positive, `delta_Cm` should be `[COMPLETE]` because `[COMPLETE]`.
-2. If `Cm_alpha > 0` and the angle-of-attack disturbance is positive, the response should be `[COMPLETE]` because `[COMPLETE]`.
-3. If `Cm_alpha = 0`, changing angle of attack should `[COMPLETE]`.
-4. If `Cm0` is fixed and the magnitude of a nonzero `Cm_alpha` increases, the trim angle magnitude should `[COMPLETE]`.
-5. Doubling `disturbanceAlphaDeg` while holding `Cm_alpha` fixed should `[COMPLETE]`.
+1. If `Cm_alpha < 0` and the angle-of-attack disturbance is positive, `delta_Cm` should be negative because delta_Cm is negative when Cm_alpha is negative while angle of attack increases.
+2. If `Cm_alpha > 0` and the angle-of-attack disturbance is positive, the response should be positive because Cm_alpha will correspond with angle of attack.
+3. If `Cm_alpha = 0`, changing angle of attack should result in no change of moment.
+4. If `Cm0` is fixed and the magnitude of a nonzero `Cm_alpha` increases, the trim angle magnitude should decrease.
+5. Doubling `disturbanceAlphaDeg` while holding `Cm_alpha` fixed should double Delta_Cm.
 
 ## 8. Reference Calculation — STUDENT COMPLETES
 
@@ -111,28 +111,28 @@ Use the assigned class values or values approved by your instructor. Show the su
 
 ```text
 Inputs:
-Cm0 = [COMPLETE]
-Cm_alpha = [COMPLETE] 1/rad
-alpha = [COMPLETE] deg
-delta_alpha = [COMPLETE] deg
+Cm0 = 0.04 (dimensionless)
+Cm_alpha = -0.8 1/rad
+alpha = 2.86 deg
+delta_alpha = +2.00 deg
 
 Angle conversion:
-alpha_rad = [SHOW WORK]
-delta_alpha_rad = [SHOW WORK]
+alpha_rad = 2.86 * pi / 180 = 0.04991641661 rad
+delta_alpha_rad = 0.03490658504 rad
 
 Current pitching-moment coefficient:
-Cm(alpha) = [SHOW WORK]
+Cm(alpha) = 0.04 + (-0.8)*(0.04991641661) = 0.000066866712 (dimensionless)
 
 Trim angle:
-alpha_trim_rad = [SHOW WORK]
-alpha_trim_deg = [SHOW WORK]
+alpha_trim_rad = -(0.04)/(-0.8) = 0.05 rad
+alpha_trim_deg = 0.05 * 180 / pi = 2.864788976 deg
 
 Disturbance response:
-delta_Cm = [SHOW WORK]
+delta_Cm = (-0.8) * 0.03490658504 = -0.02792526803 (dimensionless)
 
 Expected classifications:
-selected condition = [trimmed / not trimmed]
-disturbance tendency = [restoring / neutral / destabilizing]
+selected condition = not trimmed
+disturbance tendency = restoring
 ```
 
 ## 9. Verification Cases — STUDENT COMPLETES
