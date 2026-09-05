@@ -69,11 +69,14 @@ export function calculateTrimAngleDeg(cm0, cmAlphaPerRad) {
  * disturbanceAlphaDeg is converted to radians because the slope is per radian.
  */
 export function calculateDeltaCm(cmAlphaPerRad, disturbanceAlphaDeg) {
-  requireFiniteNumber(cmAlphaPerRad, "cmAlphaPerRad");
+requireFiniteNumber(cmAlphaPerRad, "cmAlphaPerRad");
 
-  const deltaAlphaRad = degreesToRadians(disturbanceAlphaDeg);
-  return cmAlphaPerRad * deltaAlphaRad;
+const deltaAlphaRad = degreesToRadians(disturbanceAlphaDeg);
+const deltaCm = cmAlphaPerRad * deltaAlphaRad;
+
+return deltaCm === 0 ? 0 : deltaCm;
 }
+
 
 /**
  * Classify the selected condition using the specified trim tolerance.
