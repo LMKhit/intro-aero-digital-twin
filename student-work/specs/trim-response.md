@@ -144,7 +144,7 @@ Define all three cases before implementation. Include exact inputs, expected out
 Use your Section 8 reference calculation.
 
 ```text
-[COMPLETE]
+Disturbance Response Cm coefficient is -0.02792526803
 ```
 
 ### 9.2 Behavioral case
@@ -152,7 +152,7 @@ Use your Section 8 reference calculation.
 Change one input and state the exact trend or sign that must result.
 
 ```text
-[COMPLETE]
+If delta_alpha is negative, delta_Cm will be positive.
 ```
 
 ### 9.3 Boundary or sanity case
@@ -160,7 +160,11 @@ Change one input and state the exact trend or sign that must result.
 Use an informative boundary such as zero slope, zero disturbance, or the trim condition. State the exact behavior expected and why division by zero or a false physical claim must not occur.
 
 ```text
-[COMPLETE]
+zero slope means Cm_alpha is zero, meaning the aircraft has neutral restoring tendency.
+zero disturbance means delta_alpha is zero, meaning the aircraft is in a smooth flight without any change is condition.
+trim condition means Cm_0 is extremely close to or is at zero, meaning trim angle is also at zero.
+therefore, the behavior expected will be an undisturbed cruise without any moment.
+division by zero must not occur because Cm(alpha) is already zero and the condition for the equation for trim angle has not been met.
 ```
 
 ## 10. Feature Requirements
@@ -196,7 +200,7 @@ Do not modify any existing file.
 In one or two sentences, state what decision the completed feature will support and what it cannot establish.
 
 ```text
-[COMPLETE]
+the complete feature will support the analysis of pitching-moments and tendencies of the aircraft's response to disturbance, hence the decision to design the aircraft by considering the placement of the center of mass, position of the propellor or engines, and the surface area of the wings, both tail and body wings. However, it cannot establish other requirements alone, such as ideal thrust placements and wingspan because no change in the mass of the aircraft will be considered.
 ```
 
 ---
