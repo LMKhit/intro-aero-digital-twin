@@ -1,47 +1,39 @@
 const DEG_TO_RAD = Math.PI / 180;
-const RAD_TO_DEG = 180 / Math.PI;
 const TRIM_TOLERANCE = 1e-6;
 
 function requireFiniteNumber(value, name) {
   if (typeof value !== "number" || !Number.isFinite(value)) {
     throw new TypeError(`${name} must be a finite number.`);
   }
-
   return value;
 }
 
 /**
  * Convert an angle from degrees to radians.
- * Input unit: deg. Output unit: rad.
+ * Input: degrees. Output: radians.
  */
-export function degreesToRadians(angleDeg) {
-  return requireFiniteNumber(angleDeg, "angleDeg") * DEG_TO_RAD;
-}
-
-/**
- * Convert an angle from radians to degrees.
- * Input unit: rad. Output unit: deg.
- */
-export function radiansToDegrees(angleRad) {
-  return requireFiniteNumber(angleRad, "angleRad") * RAD_TO_DEG;
+export function degreesToRadians(degrees) {
+  return requireFiniteNumber(degrees, "degrees") * DEG_TO_RAD;
 }
 
 /**
  * Calculate Cm(alpha).
- * cm0 is dimensionless; cmAlphaPerRad is 1/rad; angleOfAttackDeg is deg.
- * Positive pitching moment and angle of attack are nose-up.
+ * Inputs: cm0 dimensionless, cmAlphaPerRad 1/rad, alphaRad rad.
+ * Output: dimensionless pitching-moment coefficient.
+ * Sign convention: positive Cm and positive alpha are nose-up.
  */
-export function calculateCmAtAlpha(cm0, cmAlphaPerRad, angleOfAttackDeg) {
+export function calculateCm(cm0, cmAlphaPerRad, alphaRad) {
   requireFiniteNumber(cm0, "cm0");
   requireFiniteNumber(cmAlphaPerRad, "cmAlphaPerRad");
+  requireFiniteNumber(alphaRad, "alphaRad");
 
-  const alphaRad = degreesToRadians(angleOfAttackDeg);
   return cm0 + cmAlphaPerRad * alphaRad;
 }
 
 /**
- * Calculate the unique trim angle.
- * Returns null when cmAlphaPerRad is zero because no unique trim angle exists.
+ * Calculate trim angle.
+ * Inputs: cm0 dimensionless, cmAlphaPerRad 1/rad.
+ * Output: radians, or null when no unique trim angle exists.
  */
 export function calculateTrimAngleRad(cm0, cmAlphaPerRad) {
   requireFiniteNumber(cm0, "cm0");
@@ -55,55 +47,32 @@ export function calculateTrimAngleRad(cm0, cmAlphaPerRad) {
 }
 
 /**
- * Calculate the unique trim angle in degrees.
- * Returns null when no unique trim angle exists.
+ * Calculate the disturbance-induced change in Cm.
+ * Inputs: cmAlphaPerRad 1/rad, disturbanceAlphaRad rad.
+ * Output: dimensionless delta_Cm.
  */
-export function calculateTrimAngleDeg(cm0, cmAlphaPerRad) {
-  const trimAngleRad = calculateTrimAngleRad(cm0, cmAlphaPerRad);
+export function calculateDeltaCm(cmAlphaPerRad, disturbanceAlphaRad) {
+  requireFiniteNumber(cmAlphaPerRad, "cmAlphaPerRad");
+  requireFiniteNumber(disturbanceAlphaRad, "disturbanceAlphaRad");
 
-  return trimAngleRad === null ? null : radiansToDegrees(trimAngleRad);
+  return cmAlphaPerRad * disturbanceAlphaRad;
 }
 
 /**
- * Calculate the disturbance change in pitching-moment coefficient.
- * disturbanceAlphaDeg is converted to radians because the slope is per radian.
+ * Classify the disturbance using the sign of
+ * delta_alpha_rad * delta_Cm.
  */
-export function calculateDeltaCm(cmAlphaPerRad, disturbanceAlphaDeg) {
-requireFiniteNumber(cmAlphaPerRad, "cmAlphaPerRad");
-
-const deltaAlphaRad = degreesToRadians(disturbanceAlphaDeg);
-const deltaCm = cmAlphaPerRad * deltaAlphaRad;
-
-return deltaCm === 0 ? 0 : deltaCm;
-}
-
-
-/**
- * Classify the selected condition using the specified trim tolerance.
- */
-export function classifyTrim(cmAtAlpha) {
-  requireFiniteNumber(cmAtAlpha, "cmAtAlpha");
-
-  return Math.abs(cmAtAlpha) <= TRIM_TOLERANCE ? "trimmed" : "not trimmed";
-}
-
-/**
- * Classify the disturbance using sign(deltaAlphaRad * deltaCm).
- */
-export function classifyDisturbanceTendency(
-  disturbanceAlphaDeg,
-  deltaCm,
-) {
+export function classifyDisturbance(disturbanceAlphaRad, deltaCm) {
+  requireFiniteNumber(disturbanceAlphaRad, "disturbanceAlphaRad");
   requireFiniteNumber(deltaCm, "deltaCm");
 
-  const deltaAlphaRad = degreesToRadians(disturbanceAlphaDeg);
-  const tendencyProduct = deltaAlphaRad * deltaCm;
+  const product = disturbanceAlphaRad * deltaCm;
 
-  if (tendencyProduct < 0) {
+  if (product < 0) {
     return "restoring";
   }
 
-  if (tendencyProduct > 0) {
+  if (product > 0) {
     return "destabilizing";
   }
 
@@ -111,47 +80,52 @@ export function classifyDisturbanceTendency(
 }
 
 /**
- * Calculate all Stage 4 engineering quantities from the canonical aircraft inputs.
- * The model is linear and quasi-static; it does not represent a time response.
+ * Determine whether the selected condition is trimmed.
+ * Output: Boolean.
  */
-export function analyzeTrimResponse(aircraft) {
-  if (!aircraft || typeof aircraft !== "object") {
-    throw new TypeError("aircraft must be an object.");
-  }
+export function isTrimmed(cm) {
+  requireFiniteNumber(cm, "cm");
+  return Math.abs(cm) <= TRIM_TOLERANCE;
+}
 
-  const {
-    cm0,
-    cmAlphaPerRad,
-    angleOfAttackDeg,
-    disturbanceAlphaDeg,
-  } = aircraft;
+/**
+ * Calculate all Stage 4 outputs from the canonical aircraft inputs.
+ */
+export function calculateTrimResponse({
+  cm0,
+  cmAlphaPerRad,
+  angleOfAttackDeg,
+  disturbanceAlphaDeg,
+}) {
+  requireFiniteNumber(cm0, "cm0");
+  requireFiniteNumber(cmAlphaPerRad, "cmAlphaPerRad");
+  requireFiniteNumber(angleOfAttackDeg, "angleOfAttackDeg");
+  requireFiniteNumber(disturbanceAlphaDeg, "disturbanceAlphaDeg");
 
-  const cmAtAlpha = calculateCmAtAlpha(
-    cm0,
-    cmAlphaPerRad,
-    angleOfAttackDeg,
-  );
+  const alphaRad = degreesToRadians(angleOfAttackDeg);
+  const disturbanceAlphaRad = degreesToRadians(disturbanceAlphaDeg);
 
+  const cm = calculateCm(cm0, cmAlphaPerRad, alphaRad);
   const trimAngleRad = calculateTrimAngleRad(cm0, cmAlphaPerRad);
-  const trimAngleDeg =
-    trimAngleRad === null ? null : radiansToDegrees(trimAngleRad);
-
   const deltaCm = calculateDeltaCm(
     cmAlphaPerRad,
-    disturbanceAlphaDeg,
+    disturbanceAlphaRad,
   );
 
   return {
-    cmAtAlpha,
+    cm,
     trimAngleRad,
-    trimAngleDeg,
+    trimAngleDeg:
+      trimAngleRad === null
+        ? null
+        : trimAngleRad / DEG_TO_RAD,
     deltaCm,
-    trimStatus: classifyTrim(cmAtAlpha),
-    disturbanceTendency: classifyDisturbanceTendency(
-      disturbanceAlphaDeg,
+    trimmed: isTrimmed(cm),
+    disturbanceTendency: classifyDisturbance(
+      disturbanceAlphaRad,
       deltaCm,
     ),
   };
 }
 
-export const TRIM_RESPONSE_TOLERANCE = TRIM_TOLERANCE;
+export { TRIM_TOLERANCE };
