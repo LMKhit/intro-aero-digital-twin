@@ -144,7 +144,25 @@ Define all three cases before implementation. Include exact inputs, expected out
 Use your Section 8 reference calculation.
 
 ```text
-Disturbance Response Cm coefficient is -0.02792526803
+Inputs:
+Cm0 = 0.04
+Cm_alpha = -0.8 1/rad
+alpha = 2.86 deg
+delta_alpha = +2.00 deg
+
+Expected:
+Cm(alpha) = 0.000066866712, dimensionless
+alpha_trim = 2.864788976 deg
+delta_Cm = -0.02792526803, dimensionless
+selected condition = not trimmed
+disturbance tendency = restoring
+
+Numerical tolerance:
+Cm(alpha): ±1e-6
+alpha_trim: ±1e-6 deg
+delta_Cm: ±1e-6
+
+The tolerances allow for floating-point evaluation while remaining much smaller than the engineering differences being evaluated.
 ```
 
 ### 9.2 Behavioral case
@@ -152,7 +170,23 @@ Disturbance Response Cm coefficient is -0.02792526803
 Change one input and state the exact trend or sign that must result.
 
 ```text
-If delta_alpha is negative, delta_Cm will be positive.
+Starting inputs:
+Cm0 = 0.04
+Cm_alpha = -0.8 1/rad
+alpha = 2.86 deg
+delta_alpha = +2.00 deg
+
+Change only:
+delta_alpha = +4.00 deg
+
+Expected behavior:
+delta_Cm should double in magnitude while keeping the same negative sign.
+
+Expected:
+delta_Cm(+2.00 deg) = -0.02792526803
+delta_Cm(+4.00 deg) = -0.05585053606
+
+The disturbance tendency should remain restoring because Cm_alpha remains negative and the disturbance remains positive.
 ```
 
 ### 9.3 Boundary or sanity case
@@ -160,11 +194,21 @@ If delta_alpha is negative, delta_Cm will be positive.
 Use an informative boundary such as zero slope, zero disturbance, or the trim condition. State the exact behavior expected and why division by zero or a false physical claim must not occur.
 
 ```text
-zero slope means Cm_alpha is zero, meaning the aircraft has neutral restoring tendency.
-zero disturbance means delta_alpha is zero, meaning the aircraft is in a smooth flight without any change is condition.
-trim condition means Cm_0 is extremely close to or is at zero, meaning trim angle is also at zero.
-therefore, the behavior expected will be an undisturbed cruise without any moment.
-division by zero must not occur because Cm(alpha) is already zero and the condition for the equation for trim angle has not been met.
+Inputs:
+Cm0 = 0.04
+Cm_alpha = 0 1/rad
+alpha = 2.86 deg
+delta_alpha = +2.00 deg
+
+Expected:
+Cm(alpha) = 0.04, dimensionless
+alpha_trim = not available
+delta_Cm = 0, dimensionless
+disturbance tendency = neutral
+
+Changing angle of attack must not change Cm because Cm_alpha = 0.
+No unique trim angle exists, so the implementation must not divide by zero or return an infinite trim angle.
+The disturbance is neutral because delta_Cm = 0.
 ```
 
 ## 10. Feature Requirements
@@ -200,7 +244,7 @@ Do not modify any existing file.
 In one or two sentences, state what decision the completed feature will support and what it cannot establish.
 
 ```text
-the complete feature will support the analysis of pitching-moments and tendencies of the aircraft's response to disturbance, hence the decision to design the aircraft by considering the placement of the center of mass, position of the propellor or engines, and the surface area of the wings, both tail and body wings. However, it cannot establish other requirements alone, such as ideal thrust placements and wingspan because no change in the mass of the aircraft will be considered.
+The feature supports a decision on whether the selected condition is trimmed under the simplified linear Cm-alpha model and whether a small angle-of-attack disturbance produces a restoring or destabilizing moment tendency. It cannot establish aircraft safety, controllability, flightworthiness, or behavior outside the model's linear and quasi-static validity limits.
 ```
 
 ---
